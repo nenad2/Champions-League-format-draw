@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sezona i plejof — 12 timova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg: #0A1442;
+    --surface: #101F5C;
+    --surface-2: #17298A;
+    --line: #2E3F9E;
+    --text: #F0F0F5;
+    --muted: #9AACE0;
+    --gold: #4FD8EC;
+    --gold-soft: #123055;
+    --teal: #D14FD6;
+    --teal-soft: #3A1740;
+    --red: #FF6B5B;
+    --blue: #6CA8F0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height:1.5;
+  }
+  .wrap{ max-width: 760px; margin: 0 auto; padding: 28px 20px 80px; }
+  h1,h2,h3{ font-family:'Oswald', system-ui, sans-serif; font-weight:600; margin:0; letter-spacing:.2px; }
+  header.top{ margin-bottom:28px; }
+  header.top h1{ font-size:clamp(26px, 6vw, 36px); }
+  header.top p{ color: var(--muted); margin:6px 0 0; font-size:14.5px; max-width:58ch; }
+  section{ background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  section h2{ font-size:19px; margin-bottom:4px; }
+  section > p.hint{ color: var(--muted); font-size:13.5px; margin:0 0 16px; }
+
+  .roster{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+  .team-row{ display:flex; align-items:center; gap:8px; background: var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
+  .team-row input[type=text]{ flex:1; background:transparent; border:none; color:var(--text); font-size:15px; font-family:'Inter',sans-serif; padding:6px 4px; min-width:0; }
+  .team-row input[type=text]:focus{outline:none;}
+  .pot-toggle{ display:flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; flex-shrink:0; }
+  .pot-toggle button{ border:none; padding:7px 10px; font-size:12.5px; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; background: transparent; color: var(--muted); }
+  .pot-toggle button.active.potA{ background: var(--gold-soft); color: var(--gold); }
+  .pot-toggle button.active.potB{ background: var(--teal-soft); color: var(--teal); }
+  .remove-btn{ background:transparent; border:none; color: var(--muted); cursor:pointer; font-size:16px; padding:4px 6px; flex-shrink:0; }
+  .remove-btn:hover{ color: var(--red); }
+  .venue-btn{ background:transparent; border:1px solid var(--line); border-radius:6px; color: var(--muted); cursor:pointer; font-size:14px; padding:5px 8px; flex-shrink:0; line-height:1; }
+  .venue-btn:hover{ color: var(--text); border-color: var(--red); }
+  .venue-btn.active{ background: rgba(194,96,79,0.18); border-color: var(--red); color: var(--red); }
+  .team-row.venue-share{ border-color: var(--red); box-shadow: 0 0 0 1px var(--red) inset; }
+  .add-row{ display:flex; gap:8px; }
+  .add-row button{ background: var(--surface-2); border:1px dashed var(--line); color: var(--muted); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .add-row button:hover{ color: var(--text); border-color: var(--gold); }
+  .counts{ display:flex; gap:16px; font-size:13px; color: var(--muted); margin-top:10px; flex-wrap:wrap; }
+  .counts b{ color: var(--text); }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; }
+  .dot.a{ background: var(--gold); }
+  .dot.b{ background: var(--teal); }
+
+  .settings-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:16px; }
+  .field label{ display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+  .stepper{ display:flex; align-items:center; background: var(--surface-2); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .stepper button{ background:transparent; border:none; color: var(--text); font-size:18px; width:38px; height:40px; cursor:pointer; }
+  .stepper button:hover{ background: rgba(255,255,255,0.05); }
+  .stepper input{ flex:1; text-align:center; background:transparent; border:none; color:var(--text); font-size:16px; font-family:'Inter',sans-serif; font-variant-numeric: tabular-nums; width:100%; padding:0; }
+  .stepper input:focus{ outline:none; }
+  .generate-btn{ width:100%; background: var(--gold); color: #FFFFFF; border:none; border-radius:8px; padding:13px 16px; font-size:15.5px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer; }
+  .generate-btn:hover{ filter:brightness(1.06); }
+  .generate-btn:active{ filter:brightness(0.95); }
+  .note{ font-size:13px; color: var(--muted); margin-top:12px; padding:10px 12px; background: var(--surface-2); border-radius:8px; border:1px solid var(--line); }
+  .note.warn{ color:#E0B87A; border-color:#4a3a1e; }
+
+  #resultsSection, #playoffSection{ display:none; }
+  .date-settings{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .date-settings .field{ flex:1; min-width:150px; }
+  .date-settings input{ width:100%; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:9px 10px; color:var(--text); font-family:'Inter',sans-serif; font-size:14px; }
+  .date-settings input:focus{ outline:1px solid var(--gold); }
+
+  .result-toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; flex-wrap:wrap; }
+  .result-toolbar .stat{ font-size:13px; color:var(--muted); }
+  .ghost-btn{ background:transparent; border:1px solid var(--line); color:var(--text); border-radius:7px; padding:8px 12px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .ghost-btn:hover{ border-color: var(--gold); color: var(--gold); }
+
+  .tabs{ display:flex; gap:6px; margin-bottom:16px; border-bottom:1px solid var(--line); }
+  .tab-btn{ background:transparent; border:none; color:var(--muted); font-family:'Inter',sans-serif; font-weight:600; font-size:14px; padding:9px 4px; cursor:pointer; border-bottom:2px solid transparent; margin-right:14px; }
+  .tab-btn.active{ color: var(--gold); border-bottom-color: var(--gold); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  .half-heading{ font-family:'Oswald',sans-serif; font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:18px 0 10px; }
+  .half-heading:first-child{ margin-top:0; }
+  .round-block{ border:1px solid var(--line); border-radius:8px; margin-bottom:8px; background: var(--surface-2); overflow:hidden; }
+  .round-head{ display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; }
+  .round-head .kolo-num{ font-family:'Oswald',sans-serif; font-weight:600; color:var(--gold); font-size:14px; width:56px; flex-shrink:0; }
+  .round-head .kolo-sub{ font-size:12.5px; color:var(--muted); flex:1; }
+  .round-body{ display:none; border-top:1px solid var(--line); padding:6px 14px 10px; }
+  .round-block.open .round-body{ display:block; }
+  .round-match{ display:flex; align-items:center; gap:8px; padding:7px 0; font-size:14px; border-bottom:1px solid var(--line); }
+  .round-match:last-child{ border-bottom:none; }
+  .round-match .side{ flex:1; }
+  .round-match .side.home{ text-align:right; }
+  .round-match .vs{ color:var(--muted); font-size:12px; flex-shrink:0; width:24px; text-align:center; }
+  .pot-dot{ width:7px; height:7px; border-radius:50%; display:inline-block; margin-left:5px; }
+
+  .team-card{ border:1px solid var(--line); border-radius:9px; margin-bottom:10px; overflow:hidden; background: var(--surface-2); }
+  .team-card .head{ display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; }
+  .badge{ width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; flex-shrink:0; }
+  .badge.a{ background: var(--gold-soft); color: var(--gold); }
+  .badge.b{ background: var(--teal-soft); color: var(--teal); }
+  .team-card .head .name{ font-family:'Oswald',sans-serif; font-size:16px; flex:1; }
+  .team-card .head .tally{ font-size:12px; color: var(--muted); text-align:right; line-height:1.3; }
+  .team-card .body{ display:none; border-top:1px solid var(--line); padding: 4px 14px 10px; }
+  .team-card.open .body{ display:block; }
+  .match-line{ display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .match-line:last-child{ border-bottom:none; }
+  .match-line .kolo{ color:var(--muted); font-size:11.5px; width:52px; flex-shrink:0; }
+  .ha-tag{ font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px; flex-shrink:0; width:28px; text-align:center; }
+  .ha-tag.h{ background: var(--gold-soft); color: var(--gold); }
+  .ha-tag.a{ background: var(--surface); color: var(--muted); border:1px solid var(--line); }
+  .match-line .opp{ flex:1; }
+  .match-line .opp-pot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .scroll-x{ overflow-x:auto; }
+
+  .standings-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .standings-row{ display:flex; align-items:center; gap:10px; background: var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  .standings-row .pos{ font-family:'Oswald',sans-serif; color:var(--muted); width:22px; font-size:14px; flex-shrink:0; }
+  .standings-row.top8 .pos{ color: var(--gold); }
+  .standings-row .sname{ flex:1; font-size:14.5px; }
+  .standings-row .move-btns{ display:flex; gap:4px; }
+  .standings-row .move-btns button{ background:transparent; border:1px solid var(--line); color:var(--text); border-radius:5px; width:26px; height:26px; cursor:pointer; font-size:12px; }
+  .standings-row .move-btns button:hover{ border-color: var(--gold); }
+  .cutline{ border-top:2px dashed var(--gold); margin: 2px 0 8px; padding-top:6px; font-size:11.5px; color:var(--gold); text-transform:uppercase; letter-spacing:.5px; }
+
+  .bracket{ display:flex; flex-direction:column; gap:22px; }
+  .bracket-round-title{ font-family:'Oswald',sans-serif; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+  .bracket-matches{ display:flex; flex-direction:column; gap:10px; }
+  .bracket-match{ border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--surface-2); }
+  .bracket-side{ display:flex; align-items:center; justify-content:space-between; padding:9px 12px; font-size:14px; cursor:pointer; border-bottom:1px solid var(--line); }
+  .bracket-side:last-child{ border-bottom:none; }
+  .bracket-side .seed{ color:var(--muted); font-size:12px; margin-right:8px; width:16px; display:inline-block; }
+  .bracket-side.winner{ background: var(--gold-soft); color: var(--gold); font-weight:600; }
+  .bracket-side.tbd{ color:var(--muted); cursor:default; }
+
+  @media (max-width: 480px){ .settings-grid{ grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Sezona i plejof</h1>
+    <p>Napravi raspored po kolima za jesenji i prolećni deo sezone, sa nosiocima i slabijim timovima, pa posle sezone izaberi plejof ekipe. Sve što napraviš ostaje sačuvano u ovom browseru.</p>
+    <button class="ghost-btn" id="resetSavedBtn" type="button" style="margin-top:12px;">Obriši sačuvano i počni ispočetka</button>
+  </header>
+
+  <section id="rosterSection">
+    <h2>Timovi</h2>
+    <p class="hint">Dodeli svakom timu pot: <span class="dot a"></span>jak (nosilac) ili <span class="dot b"></span>slab. Za runde je potreban paran broj timova.</p>
+    <p class="hint">Ako dva tima dele teren/termin (npr. igraju na istom terenu istog dana), klikni <span class="venue-btn active" style="cursor:default; padding:2px 6px; font-size:12px;">🏟</span> pored ta dva tima da ih obeležiš (tačno dva) — u rasporedu nikad neće oba biti domaćini u istom kolu.</p>
+    <div class="roster" id="roster"></div>
+    <div class="add-row"><button id="addTeamBtn" type="button">+ Dodaj tim</button></div>
+    <div class="counts" id="counts"></div>
+  </section>
+
+  <section id="settingsSection">
+    <h2>Pravila po polusezoni</h2>
+    <p class="hint">Ovoliko mečeva igra svaki tim protiv jačih i protiv slabijih — u jesenjem delu, pa isto toliko ponovo u prolećnom.</p>
+    <div class="settings-grid">
+      <div class="field">
+        <label>Mečeva sa slabijim (po polusezoni)</label>
+        <div class="stepper">
+          <button type="button" data-step="cross" data-dir="-1">−</button>
+          <input type="text" id="crossTarget" value="4" inputmode="numeric">
+          <button type="button" data-step="cross" data-dir="1">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Mečeva sa jačim (po polusezoni)</label>
+        <div class="stepper">
+          <button type="button" data-step="same" data-dir="-1">−</button>
+          <input type="text" id="sameTarget" value="4" inputmode="numeric">
+          <button type="button" data-step="same" data-dir="1">+</button>
+        </div>
+      </div>
+    </div>
+    <button class="generate-btn" id="generateBtn" type="button">Generiši sezonu</button>
+    <div id="settingsNote"></div>
+  </section>
+
+  <section id="resultsSection">
+    <h2>Raspored</h2>
+    <div class="date-settings">
+      <div class="field">
+        <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">Datum 1. kola</label>
+        <input type="date" id="startDate">
+      </div>
+      <div class="field">
+        <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">Vreme meča</label>
+        <input type="time" id="matchTime" value="21:00">
+      </div>
+      <div class="field">
+        <label style="display:block; font-size:13px; color:var(--muted); margin-bottom:6px;">Razmak između kola (dana)</label>
+        <input type="number" id="roundGap" value="7" min="1">
+      </div>
+    </div>
+    <div class="result-toolbar">
+      <div class="stat" id="resultStat"></div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="ghost-btn" id="regenBtn" type="button">Regeneriši</button>
+        <button class="ghost-btn" id="copyBtn" type="button">Kopiraj tekst</button>
+        <button class="ghost-btn" id="exportBtn" type="button">Export u Excel</button>
+        <button class="ghost-btn" id="exportCsvBtn" type="button">Export u CSV</button>
+        <button class="ghost-btn" id="exportLigaBtn" type="button" title="Excel sa rosterom, automatskom tabelom i svim kolima za unos rezultata">Export liga tabela (xlsx)</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="rounds" type="button">Po kolima</button>
+      <button class="tab-btn" data-tab="teams" type="button">Po timovima</button>
+    </div>
+    <div class="tab-panel active" id="tab-rounds"></div>
+    <div class="tab-panel" id="tab-teams"></div>
+  </section>
+
+  <section id="playoffSection">
+    <h2>Plasman i plejof</h2>
+    <p class="hint">Posle odigrane sezone, poređaj timove po konačnom plasmanu (1. mesto na vrhu). Prvih 8 ide u plejof — četvrtfinale se pari ukrštено: 1-8, 2-7, 3-6, 4-5.</p>
+    <div class="standings-list" id="standingsList"></div>
+    <button class="generate-btn" id="playoffBtn" type="button">Generiši plejof (top 8)</button>
+    <div id="playoffNote"></div>
+    <div class="bracket" id="bracket" style="margin-top:18px;"></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  let idCounter = 0;
+  function newId(){ return 'T' + (idCounter++); }
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+  function pairKey(a,b){ return a<b ? a+'|'+b : b+'|'+a; }
+  function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // ---------------- roster ----------------
+  const defaultNames6 = ['Nosilac 1','Nosilac 2','Nosilac 3','Nosilac 4','Nosilac 5','Nosilac 6'];
+  const defaultNamesB = ['Slabiji 1','Slabiji 2','Slabiji 3','Slabiji 4','Slabiji 5','Slabiji 6'];
+  let teams = [
+    ...defaultNames6.map(n => ({ id:newId(), name:n, pot:'A' })),
+    ...defaultNamesB.map(n => ({ id:newId(), name:n, pot:'B' }))
+  ];
+
+  const rosterEl = document.getElementById('roster');
+  const countsEl = document.getElementById('counts');
+
+  function renderRoster(){
+    rosterEl.innerHTML = '';
+    teams.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'team-row' + (t.venue ? ' venue-share' : '');
+      row.innerHTML = `
+        <input type="text" value="${escapeAttr(t.name)}" data-id="${t.id}" class="name-input">
+        <div class="pot-toggle">
+          <button type="button" class="potA ${t.pot==='A'?'active':''}" data-id="${t.id}" data-pot="A">Jak</button>
+          <button type="button" class="potB ${t.pot==='B'?'active':''}" data-id="${t.id}" data-pot="B">Slab</button>
+        </div>
+        <button type="button" class="venue-btn ${t.venue?'active':''}" data-id="${t.id}" title="Deli teren/termin sa drugim timom">🏟</button>
+        <button type="button" class="remove-btn" data-id="${t.id}" title="Ukloni">✕</button>
+      `;
+      rosterEl.appendChild(row);
+    });
+    const a = teams.filter(t=>t.pot==='A').length;
+    const b = teams.filter(t=>t.pot==='B').length;
+    const parityWarn = teams.length % 2 !== 0 ? ' <span style="color:#E0B87A">— za runde treba paran broj timova</span>' : '';
+    countsEl.innerHTML = `<span><span class="dot a"></span>jakih: <b>${a}</b></span><span><span class="dot b"></span>slabih: <b>${b}</b></span><span>ukupno: <b>${teams.length}</b>${parityWarn}</span>`;
+  }
+
+  rosterEl.addEventListener('input', e => {
+    if(e.target.classList.contains('name-input')){
+      const t = teams.find(t=>t.id===e.target.dataset.id);
+      if(t) t.name = e.target.value;
+      saveState();
+    }
+  });
+  rosterEl.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    if(btn.classList.contains('remove-btn')){
+      teams = teams.filter(t=>t.id!==btn.dataset.id);
+      renderRoster();
+      saveState();
+    } else if(btn.classList.contains('venue-btn')){
+      const t = teams.find(t=>t.id===btn.dataset.id);
+      if(!t) return;
+      if(!t.venue){
+        const currentlyMarked = teams.filter(x=>x.venue);
+        if(currentlyMarked.length >= 2){
+          alert('Već su obeležena dva tima koja dele teren. Prvo klikni 🏟 na jednom od njih da ukloniš oznaku, pa onda obeleži drugi tim.');
+          return;
+        }
+      }
+      t.venue = !t.venue;
+      renderRoster();
+      saveState();
+    } else if(btn.dataset.pot){
+      const t = teams.find(t=>t.id===btn.dataset.id);
+      if(t){ t.pot = btn.dataset.pot; renderRoster(); saveState(); }
+    }
+  });
+  document.getElementById('addTeamBtn').addEventListener('click', () => {
+    teams.push({ id:newId(), name:'Novi tim', pot: (teams.filter(t=>t.pot==='A').length <= teams.filter(t=>t.pot==='B').length) ? 'A' : 'B' });
+    renderRoster();
+    saveState();
+  });
+  renderRoster();
+
+  document.querySelectorAll('.stepper button[data-step]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const field = document.getElementById(btn.dataset.step === 'same' ? 'sameTarget' : 'crossTarget');
+      let v = parseInt(field.value,10) || 0;
+      v += parseInt(btn.dataset.dir,10);
+      if(v<0) v=0;
+      field.value = v;
+      saveState();
+    });
+  });
+
+  // ---------------- scheduling engine ----------------
+  function buildRound(teamsArr, same, cross, playedWith, sameTarget, crossTarget, avoidSet){
+    let pool = shuffle(teamsArr);
+    const pairs = [];
+    while(pool.length > 0){
+      let bestIdx = -1, bestCandidates = null;
+      for(let i=0;i<pool.length;i++){
+        const t = pool[i];
+        const cands = [];
+        for(let j=0;j<pool.length;j++){
+          if(j===i) continue;
+          const o = pool[j];
+          if(playedWith[t.id].has(o.id)) continue;
+          const isSamePot = t.pot===o.pot;
+          if(isSamePot){ if(same[t.id]>=sameTarget || same[o.id]>=sameTarget) continue; }
+          else { if(cross[t.id]>=crossTarget || cross[o.id]>=crossTarget) continue; }
+          cands.push(o);
+        }
+        if(bestCandidates===null || cands.length < bestCandidates.length){
+          bestCandidates = cands; bestIdx = i;
+          if(cands.length===0) break;
+        }
+      }
+      if(!bestCandidates || bestCandidates.length===0) return null;
+      const t = pool[bestIdx];
+      const scored = bestCandidates.map(o=>{
+        const isSamePot = o.pot===t.pot;
+        const urgency = isSamePot ? (sameTarget-same[t.id]) + (sameTarget-same[o.id]) : (crossTarget-cross[t.id]) + (crossTarget-cross[o.id]);
+        const avoidPenalty = (avoidSet && avoidSet.has(pairKey(t.id,o.id))) ? -100 : 0;
+        return { o, isSamePot, score: urgency + avoidPenalty + Math.random()*0.01 };
+      });
+      scored.sort((a,b)=>b.score-a.score);
+      const chosen = scored[0];
+      const o = chosen.o;
+      pairs.push({ a:t, b:o, same: chosen.isSamePot });
+      same[t.id] += chosen.isSamePot?1:0; same[o.id]+= chosen.isSamePot?1:0;
+      cross[t.id]+= chosen.isSamePot?0:1; cross[o.id]+= chosen.isSamePot?0:1;
+      playedWith[t.id].add(o.id); playedWith[o.id].add(t.id);
+      pool = pool.filter(x=>x.id!==t.id && x.id!==o.id);
+    }
+    return pairs;
+  }
+
+  function generateHalf(teamsArr, R, sameTarget, crossTarget, avoidSet, maxAttempts){
+    const ids = teamsArr.map(t=>t.id);
+    for(let attempt=0; attempt<maxAttempts; attempt++){
+      const same={}, cross={}, playedWith={};
+      ids.forEach(id=>{ same[id]=0; cross[id]=0; playedWith[id]=new Set(); });
+      const rounds=[];
+      let ok=true;
+      for(let r=0;r<R;r++){
+        const rp = buildRound(teamsArr, same, cross, playedWith, sameTarget, crossTarget, avoidSet);
+        if(!rp){ ok=false; break; }
+        rounds.push(rp);
+      }
+      if(ok){
+        const allMet = ids.every(id=>same[id]===sameTarget && cross[id]===crossTarget);
+        if(allMet) return rounds;
+      }
+    }
+    return null;
+  }
+
+  // Assigns exact home/away counts per team for one half (as equal to R/2 as an
+  // integer split allows) and is free to relabel which matching is "kolo 1..R",
+  // since the underlying matchings have no inherent order. It searches many
+  // random orderings/orientations and keeps the one with fewest "breaks"
+  // (two same-venue matches back to back) — perfect alternation for every team
+  // is not always mathematically possible (dense same-pot subgraphs force it),
+  // so this returns the best found, plus a break count for transparency.
+  function scheduleHomeAway(rounds, teamIds, maxAttempts, venuePair){
+    const R = rounds.length;
+    const base = Math.floor(R/2);
+    const extra = R - base*2; // 0 or 1
+    const vp = (venuePair && venuePair.length===2) ? venuePair : null;
+    let best = null, bestBreaks = Infinity;
+    for(let attempt=0; attempt<maxAttempts; attempt++){
+      const targetHome = {};
+      const shuffledIds = shuffle(teamIds);
+      shuffledIds.forEach((id,i) => { targetHome[id] = base + (i < teamIds.length/2 ? extra : 0); });
+
+      const order = shuffle(rounds.map((_,i)=>i));
+      const homeCount = {}, lastRole = {}, roleSeq = {};
+      teamIds.forEach(id=>{ homeCount[id]=0; lastRole[id]=null; roleSeq[id]=[]; });
+      const finalOrder = [];
+      let feasible = true;
+      for(let oi=0; oi<R && feasible; oi++){
+        const round = rounds[order[oi]].map(p=>({a:p.a,b:p.b,same:p.same}));
+        const mOrder = shuffle(round.map((_,i)=>i));
+        const roundHomeSet = new Set(); // ids already playing at home in this round
+        for(const mi of mOrder){
+          const p = round[mi];
+          const remAfter = R - oi - 1;
+          const preferred = (id) => {
+            const needHome = targetHome[id] - homeCount[id];
+            if(needHome >= remAfter+1) return 'H';
+            if(needHome <= 0) return 'A';
+            if(lastRole[id]===null) return Math.random()<0.5?'H':'A';
+            return lastRole[id]==='H' ? 'A' : 'H';
+          };
+          const prefA = preferred(p.a.id), prefB = preferred(p.b.id);
+          let homeTeam;
+          if(prefA==='H' && prefB!=='H') homeTeam = p.a;
+          else if(prefB==='H' && prefA!=='H') homeTeam = p.b;
+          else {
+            const needA = targetHome[p.a.id]-homeCount[p.a.id], needB = targetHome[p.b.id]-homeCount[p.b.id];
+            homeTeam = needA===needB ? (Math.random()<0.5?p.a:p.b) : (needA>needB?p.a:p.b);
+          }
+          let awayTeam = homeTeam===p.a ? p.b : p.a;
+
+          // Venue-sharing pair: never let both members be "home" in the same round
+          // (unless this match IS the two of them playing each other, which is
+          // naturally fine — only one of the two is home in that single match).
+          if(vp){
+            const isPairMatch = (p.a.id===vp[0] && p.b.id===vp[1]) || (p.a.id===vp[1] && p.b.id===vp[0]);
+            if(!isPairMatch && (homeTeam.id===vp[0] || homeTeam.id===vp[1])){
+              const partnerId = homeTeam.id===vp[0] ? vp[1] : vp[0];
+              if(roundHomeSet.has(partnerId)){
+                const swapped = homeTeam; homeTeam = awayTeam; awayTeam = swapped;
+              }
+            }
+          }
+
+          if(homeCount[homeTeam.id] >= targetHome[homeTeam.id]){ feasible=false; break; }
+          p.home = homeTeam; p.away = awayTeam;
+          homeCount[homeTeam.id]++;
+          lastRole[homeTeam.id]='H'; lastRole[awayTeam.id]='A';
+          roleSeq[homeTeam.id].push('H'); roleSeq[awayTeam.id].push('A');
+          roundHomeSet.add(homeTeam.id);
+        }
+        finalOrder.push(round);
+      }
+      if(!feasible) continue;
+      const allOk = teamIds.every(id=>homeCount[id]===targetHome[id]);
+      if(!allOk) continue;
+      if(vp){
+        let vpConflict = false;
+        finalOrder.forEach(round=>{
+          const homesHere = new Set(round.map(p=>p.home.id));
+          if(homesHere.has(vp[0]) && homesHere.has(vp[1])){
+            // only a conflict if they didn't play each other this round
+            const playedEachOther = round.some(p => (p.a.id===vp[0]&&p.b.id===vp[1]) || (p.a.id===vp[1]&&p.b.id===vp[0]));
+            if(!playedEachOther) vpConflict = true;
+          }
+        });
+        if(vpConflict) continue;
+      }
+      let breaks=0;
+      teamIds.forEach(id=>{
+        const seq = roleSeq[id];
+        for(let i=1;i<seq.length;i++) if(seq[i]===seq[i-1]) breaks++;
+      });
+      if(breaks < bestBreaks){ bestBreaks = breaks; best = finalOrder; if(breaks===0) break; }
+    }
+    return best ? { rounds: best, breaks: bestBreaks } : null;
+  }
+
+  let lastSeason = null; // { fallRounds, springRounds, teams }
+
+  function generate(){
+    const noteEl = document.getElementById('settingsNote');
+    noteEl.innerHTML = '';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('playoffSection').style.display = 'none';
+
+    if(teams.length < 4){
+      noteEl.innerHTML = '<div class="note warn">Dodaj bar 4 tima.</div>';
+      return;
+    }
+    if(teams.length % 2 !== 0){
+      noteEl.innerHTML = '<div class="note warn">Za raspored po kolima potreban je paran broj timova. Trenutno imaš ' + teams.length + '.</div>';
+      return;
+    }
+    const potA = teams.filter(t=>t.pot==='A');
+    const potB = teams.filter(t=>t.pot==='B');
+    if(potA.length===0 || potB.length===0){
+      noteEl.innerHTML = '<div class="note warn">Treba bar jedan tim u svakom potu.</div>';
+      return;
+    }
+
+    const sameTarget = parseInt(document.getElementById('sameTarget').value,10) || 0;
+    const crossTarget = parseInt(document.getElementById('crossTarget').value,10) || 0;
+    const R = sameTarget + crossTarget;
+    if(R===0){
+      noteEl.innerHTML = '<div class="note warn">Unesi bar jedan meč po polusezoni.</div>';
+      return;
+    }
+    if(sameTarget > potA.length-1 && sameTarget > potB.length-1){
+      noteEl.innerHTML = '<div class="note warn">Broj mečeva sa jačim je veći nego što ijedan pot može da ponudi bez ponavljanja u istoj polusezoni.</div>';
+    }
+
+    const fallRounds = generateHalf(teams, R, sameTarget, crossTarget, null, 4000);
+    if(!fallRounds){
+      noteEl.innerHTML = '<div class="note warn">Nije moguće napraviti ovakav raspored sa ovoliko timova i ovim brojevima. Smanji ciljeve i probaj ponovo.</div>';
+      return;
+    }
+    const fallSet = new Set();
+    fallRounds.forEach(r=>r.forEach(p=>fallSet.add(pairKey(p.a.id,p.b.id))));
+    const springRounds = generateHalf(teams, R, sameTarget, crossTarget, fallSet, 4000);
+    if(!springRounds){
+      noteEl.innerHTML = '<div class="note warn">Jesenji deo je napravljen, ali prolećni sa istim pravilima nije uspeo. Probaj ponovo (Generiši) ili smanji brojeve.</div>';
+      return;
+    }
+
+    // check season-wide overlap to inform user
+    const springSet = new Set();
+    springRounds.forEach(r=>r.forEach(p=>springSet.add(pairKey(p.a.id,p.b.id))));
+    let overlap = 0;
+    fallSet.forEach(k=>{ if(springSet.has(k)) overlap++; });
+    const ids = teams.map(t=>t.id);
+    const venueTeams = teams.filter(t=>t.venue);
+    const venuePair = venueTeams.length===2 ? [venueTeams[0].id, venueTeams[1].id] : null;
+    const haAttempts = venuePair ? 20000 : 6000;
+    const fallSched = scheduleHomeAway(fallRounds, ids, haAttempts, venuePair);
+    const springSched = scheduleHomeAway(springRounds, ids, haAttempts, venuePair);
+    if(!fallSched || !springSched){
+      const venueHint = venuePair ? ' (probaj i sa timovima koji dele teren — što je veći taj par usklađen sa ostalim pravilima, lakše se nalazi raspored)' : '';
+      noteEl.innerHTML = '<div class="note warn">Parovi su napravljeni, ali tačan raspored kuća/gost (' + (R%2===0?(R/2)+'/'+(R/2):'') + ') nije uspeo da se složi' + venueHint + '. Probaj Generiši ponovo.</div>';
+      return;
+    }
+
+    let notes = [];
+    if(venuePair){
+      const vNames = venueTeams.map(t=>t.name).join(' i ');
+      notes.push(`${vNames} dele teren — raspoređeno je tako da nikad oba nisu domaćini u istom kolu.`);
+    }
+    if(overlap>0){
+      notes.push(`Sa ovoliko timova i ovim brojem mečeva, ${overlap} parova se nužno ponavlja i u jesenjem i u prolećnom delu (matematički minimum za ovaj broj timova) — to je normalno, ne greška.`);
+    }
+    const totalBreaks = fallSched.breaks + springSched.breaks;
+    if(R % 2 !== 0){
+      notes.push(`${R} mečeva po polusezoni je neparan broj, pa tačno pola-pola kuća/gost nije moguće za svakog — polovina timova igra ${Math.ceil(R/2)} kod kuće, polovina ${Math.floor(R/2)}.`);
+    }
+    if(totalBreaks>0){
+      notes.push(`Redosled kod kuće/gost je što je moguće naizmeničniji, ali kod ${totalBreaks} prelaza između kola ipak ispadne dva zaredom na istom terenu (jak-jak i slab-slab mečevi u malim potovima to matematički guraju) — to je najbolje moguće, ne propust alata.`);
+    } else {
+      notes.push('Svaki tim naizmenično igra kod kuće i u gostima kroz celu polusezonu.');
+    }
+    noteEl.innerHTML = notes.map(n=>`<div class="note">${n}</div>`).join('');
+
+    lastSeason = { fallRounds: fallSched.rounds, springRounds: springSched.rounds, teams: teams.map(t=>({...t})) };
+    renderResults(lastSeason);
+    renderStandings(lastSeason.teams);
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('playoffSection').style.display = 'block';
+    currentBracketState = null;
+    saveState();
+  }
+
+  // ---------------- results rendering ----------------
+  function renderResults(season){
+    const { fallRounds, springRounds, teams: snapTeams } = season;
+    const allRounds = [...fallRounds, ...springRounds];
+    const totalMatches = allRounds.reduce((s,r)=>s+r.length,0);
+    document.getElementById('resultStat').textContent =
+      `${allRounds.length} kola (${fallRounds.length} jesenji + ${springRounds.length} prolećni) · ${totalMatches} mečeva ukupno`;
+
+    // Po kolima
+    const roundsEl = document.getElementById('tab-rounds');
+    let html = '<div class="half-heading">Jesenji deo</div>';
+    fallRounds.forEach((round, idx) => { html += renderRoundBlock(round, idx+1); });
+    html += '<div class="half-heading">Prolećni deo</div>';
+    springRounds.forEach((round, idx) => { html += renderRoundBlock(round, fallRounds.length+idx+1); });
+    roundsEl.innerHTML = html;
+    roundsEl.querySelectorAll('.round-block .round-head').forEach(h=>{
+      h.addEventListener('click', ()=> h.closest('.round-block').classList.toggle('open'));
+    });
+
+    // Po timovima
+    const perTeam = {};
+    snapTeams.forEach(t => perTeam[t.id] = { team:t, matches:[] });
+    allRounds.forEach((round, ri) => {
+      const kolo = ri+1;
+      const half = ri < fallRounds.length ? 'Jesenji' : 'Prolećni';
+      round.forEach(p => {
+        perTeam[p.a.id].matches.push({ opp: p.b, home: p.home.id===p.a.id, kolo, half });
+        perTeam[p.b.id].matches.push({ opp: p.a, home: p.home.id===p.b.id, kolo, half });
+      });
+    });
+    const teamsEl = document.getElementById('tab-teams');
+    teamsEl.innerHTML = '';
+    snapTeams.forEach(t => {
+      const p = perTeam[t.id];
+      const vsA = p.matches.filter(m=>m.opp.pot==='A').length;
+      const vsB = p.matches.length - vsA;
+      const card = document.createElement('div');
+      card.className = 'team-card';
+      const badgeCls = t.pot==='A' ? 'a' : 'b';
+      const initials = t.name.trim().slice(0,2).toUpperCase() || '??';
+      card.innerHTML = `
+        <div class="head">
+          <div class="badge ${badgeCls}">${escapeHtml(initials)}</div>
+          <div class="name">${escapeHtml(t.name)}</div>
+          <div class="tally">${p.matches.length} mečeva<br>${vsA} jačih · ${vsB} slabijih</div>
+        </div>
+        <div class="body">
+          ${p.matches.map(m => `
+            <div class="match-line">
+              <span class="kolo">${m.half==='Jesenji'?'J':'P'}${m.kolo<=(fallRounds.length) ? m.kolo : m.kolo-fallRounds.length}</span>
+              <span class="ha-tag ${m.home?'h':'a'}">${m.home?'DOM':'GOS'}</span>
+              <span class="opp-pot" style="background:${m.opp.pot==='A' ? 'var(--gold)' : 'var(--teal)'}"></span>
+              <span class="opp">${escapeHtml(m.opp.name)}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      card.querySelector('.head').addEventListener('click', () => card.classList.toggle('open'));
+      teamsEl.appendChild(card);
+    });
+  }
+
+  function renderRoundBlock(round, kolo){
+    const matchesHtml = round.map(p => `
+      <div class="round-match">
+        <span class="side home">${escapeHtml(p.home.name)}<span class="pot-dot" style="background:${p.home.pot==='A'?'var(--gold)':'var(--teal)'}"></span></span>
+        <span class="vs">–</span>
+        <span class="side away"><span class="pot-dot" style="background:${p.away.pot==='A'?'var(--gold)':'var(--teal)'}"></span>${escapeHtml(p.away.name)}</span>
+      </div>`).join('');
+    return `<div class="round-block">
+      <div class="round-head">
+        <span class="kolo-num">Kolo ${kolo}</span>
+        <span class="kolo-sub">${round.length} mečeva</span>
+      </div>
+      <div class="round-body">${matchesHtml}</div>
+    </div>`;
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  document.getElementById('generateBtn').addEventListener('click', generate);
+  document.getElementById('regenBtn').addEventListener('click', generate);
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    if(!lastSeason) return;
+    const { fallRounds, springRounds } = lastSeason;
+    let text = 'SEZONA\\n\\nJESENJI DEO\\n';
+    fallRounds.forEach((round, idx) => {
+      text += `Kolo ${idx+1}\\n`;
+      round.forEach(p => text += `  ${p.home.name} - ${p.away.name}\\n`);
+    });
+    text += '\\nPROLEĆNI DEO\\n';
+    springRounds.forEach((round, idx) => {
+      text += `Kolo ${fallRounds.length+idx+1}\\n`;
+      round.forEach(p => text += `  ${p.home.name} - ${p.away.name}\\n`);
+    });
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      const old = btn.textContent;
+      btn.textContent = 'Kopirano ✓';
+      setTimeout(()=>btn.textContent = old, 1500);
+    }).catch(()=>{});
+  });
+
+  // ---------------- standings & playoff ----------------
+  let standingsOrder = [];
+  let currentBracketState = null;
+
+  function renderStandings(snapTeams){
+    standingsOrder = snapTeams.map(t=>t.id);
+    drawStandings(snapTeams);
+    document.getElementById('bracket').innerHTML = '';
+    document.getElementById('playoffNote').innerHTML = '';
+  }
+
+  function drawStandings(snapTeams){
+    const byId = {}; snapTeams.forEach(t=>byId[t.id]=t);
+    const listEl = document.getElementById('standingsList');
+    listEl.innerHTML = '';
+    standingsOrder.forEach((id, idx) => {
+      const t = byId[id];
+      const row = document.createElement('div');
+      row.className = 'standings-row' + (idx<8 ? ' top8' : '');
+      row.innerHTML = `
+        <span class="pos">${idx+1}.</span>
+        <span class="sname">${escapeHtml(t.name)}</span>
+        <div class="move-btns">
+          <button type="button" data-dir="-1" data-id="${id}" ${idx===0?'disabled':''}>↑</button>
+          <button type="button" data-dir="1" data-id="${id}" ${idx===standingsOrder.length-1?'disabled':''}>↓</button>
+        </div>
+      `;
+      listEl.appendChild(row);
+      if(idx===7 && standingsOrder.length>8){
+        const cut = document.createElement('div');
+        cut.className = 'cutline';
+        cut.textContent = 'plejof linija';
+        listEl.appendChild(cut);
+      }
+    });
+    listEl.querySelectorAll('button[data-dir]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.id;
+        const dir = parseInt(btn.dataset.dir,10);
+        const i = standingsOrder.indexOf(id);
+        const j = i+dir;
+        if(j<0 || j>=standingsOrder.length) return;
+        [standingsOrder[i], standingsOrder[j]] = [standingsOrder[j], standingsOrder[i]];
+        drawStandings(snapTeams);
+        saveState();
+      });
+    });
+  }
+
+  document.getElementById('playoffBtn').addEventListener('click', () => {
+    const noteEl = document.getElementById('playoffNote');
+    noteEl.innerHTML = '';
+    if(!lastSeason) return;
+    if(standingsOrder.length < 8){
+      noteEl.innerHTML = '<div class="note warn">Potrebno je bar 8 timova za plejof.</div>';
+      return;
+    }
+    const byId = {}; lastSeason.teams.forEach(t=>byId[t.id]=t);
+    const top8 = standingsOrder.slice(0,8).map(id=>byId[id]);
+    buildBracket(top8);
+    saveState();
+  });
+
+  function buildBracket(top8){
+    // seeding: 1v8, 4v5, 3v6, 2v7 (standard cross bracket order so 1 and 2 meet only in final)
+    const qfPairs = [
+      [top8[0], top8[7]],
+      [top8[3], top8[4]],
+      [top8[2], top8[5]],
+      [top8[1], top8[6]],
+    ];
+    const state = {
+      qf: qfPairs.map((pair,i)=>({ id:'qf'+i, a:pair[0], b:pair[1], winner:null })),
+      sf: [ { id:'sf0', a:null, b:null, winner:null, from:['qf0','qf1'] }, { id:'sf1', a:null, b:null, winner:null, from:['qf2','qf3'] } ],
+      final: { id:'final', a:null, b:null, winner:null, from:['sf0','sf1'] }
+    };
+    currentBracketState = state;
+    renderBracket(state);
+  }
+
+  function renderBracket(state){
+    const el = document.getElementById('bracket');
+
+    function matchRow(m, seedA, seedB){
+      const aName = m.a ? m.a.name : 'TBD';
+      const bName = m.b ? m.b.name : 'TBD';
+      const aCls = m.winner && m.a && m.winner.id===m.a.id ? 'winner' : (!m.a ? 'tbd' : '');
+      const bCls = m.winner && m.b && m.winner.id===m.b.id ? 'winner' : (!m.b ? 'tbd' : '');
+      return `
+        <div class="bracket-match" data-match="${m.id}">
+          <div class="bracket-side ${aCls}" data-side="a" data-match="${m.id}">${seedA!==undefined?'<span class=\"seed\">'+seedA+'</span>':''}${escapeHtml(aName)}</div>
+          <div class="bracket-side ${bCls}" data-side="b" data-match="${m.id}">${seedB!==undefined?'<span class=\"seed\">'+seedB+'</span>':''}${escapeHtml(bName)}</div>
+        </div>`;
+    }
+
+    const seedNums = [1,8,4,5,3,6,2,7];
+    let html = '<div class="bracket-round-title">Četvrtfinale</div><div class="bracket-matches">';
+    state.qf.forEach((m,i)=>{ html += matchRow(m, seedNums[i*2], seedNums[i*2+1]); });
+    html += '</div>';
+    html += '<div class="bracket-round-title">Polufinale</div><div class="bracket-matches">';
+    state.sf.forEach(m=>{ html += matchRow(m); });
+    html += '</div>';
+    html += '<div class="bracket-round-title">Finale</div><div class="bracket-matches">';
+    html += matchRow(state.final);
+    html += '</div>';
+    el.innerHTML = html;
+
+    el.querySelectorAll('.bracket-side').forEach(sideEl=>{
+      sideEl.addEventListener('click', ()=>{
+        const matchId = sideEl.dataset.match;
+        const side = sideEl.dataset.side;
+        const allMatches = [...state.qf, ...state.sf, state.final];
+        const m = allMatches.find(x=>x.id===matchId);
+        const chosen = side==='a' ? m.a : m.b;
+        if(!chosen) return;
+        m.winner = chosen;
+        // propagate to next round
+        [state.sf[0], state.sf[1], state.final].forEach(next=>{
+          if(!next.from) return;
+          if(next.from[0]===matchId) next.a = chosen;
+          if(next.from[1]===matchId) next.b = chosen;
+          // if source match winner changes, clear downstream if it no longer matches
+        });
+        renderBracket(state);
+        saveState();
+      });
+    });
+  }
+
+  // ---------------- persistence (localStorage) ----------------
+  const STORAGE_KEY = 'zreb-sezona-v1';
+
+  function serializeBracket(state){
+    const m = (match) => ({ id: match.id, aId: match.a?match.a.id:null, bId: match.b?match.b.id:null, winnerId: match.winner?match.winner.id:null, from: match.from||null });
+    return { qf: state.qf.map(m), sf: state.sf.map(m), final: m(state.final) };
+  }
+  function deserializeBracket(saved, byId){
+    const rebuild = (m) => ({ id:m.id, a:m.aId?byId[m.aId]:null, b:m.bId?byId[m.bId]:null, winner:m.winnerId?byId[m.winnerId]:null, from:m.from||undefined });
+    return { qf: saved.qf.map(rebuild), sf: saved.sf.map(rebuild), final: rebuild(saved.final) };
+  }
+
+  function saveState(){
+    try{
+      const data = {
+        teams: teams.map(t=>({id:t.id, name:t.name, pot:t.pot, venue: !!t.venue})),
+        idCounter,
+        sameTarget: document.getElementById('sameTarget').value,
+        crossTarget: document.getElementById('crossTarget').value,
+        startDate: document.getElementById('startDate').value,
+        matchTime: document.getElementById('matchTime').value,
+        roundGap: document.getElementById('roundGap').value,
+        season: lastSeason ? {
+          teams: lastSeason.teams.map(t=>({id:t.id, name:t.name, pot:t.pot})),
+          fallRounds: lastSeason.fallRounds.map(round=>round.map(p=>({aId:p.a.id, bId:p.b.id, homeId:p.home.id, same:p.same}))),
+          springRounds: lastSeason.springRounds.map(round=>round.map(p=>({aId:p.a.id, bId:p.b.id, homeId:p.home.id, same:p.same})))
+        } : null,
+        standingsOrder: lastSeason ? standingsOrder.slice() : [],
+        bracket: currentBracketState ? serializeBracket(currentBracketState) : null
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }catch(e){ /* storage unavailable or full — silently skip, nothing else depends on it */ }
+  }
+
+  function loadState(){
+    let raw;
+    try{ raw = localStorage.getItem(STORAGE_KEY); }catch(e){ return; }
+    if(!raw) return;
+    let data;
+    try{ data = JSON.parse(raw); }catch(e){ return; }
+    if(!data || !Array.isArray(data.teams) || data.teams.length===0) return;
+
+    teams = data.teams.map(t=>({id:t.id, name:t.name, pot:t.pot, venue: !!t.venue}));
+    idCounter = typeof data.idCounter==='number' ? data.idCounter : teams.length;
+    renderRoster();
+
+    if(data.sameTarget!==undefined) document.getElementById('sameTarget').value = data.sameTarget;
+    if(data.crossTarget!==undefined) document.getElementById('crossTarget').value = data.crossTarget;
+    if(data.startDate) document.getElementById('startDate').value = data.startDate;
+    if(data.matchTime) document.getElementById('matchTime').value = data.matchTime;
+    if(data.roundGap) document.getElementById('roundGap').value = data.roundGap;
+
+    if(data.season && Array.isArray(data.season.teams)){
+      const snapTeams = data.season.teams.map(t=>({id:t.id, name:t.name, pot:t.pot}));
+      const byId = {}; snapTeams.forEach(t=>byId[t.id]=t);
+      const rebuildRounds = (rounds) => rounds.map(round=>round.map(p=>{
+        const a = byId[p.aId], b = byId[p.bId], home = byId[p.homeId];
+        const away = (home && a && home.id===a.id) ? b : a;
+        return { a, b, home, away, same: p.same };
+      }));
+      lastSeason = {
+        teams: snapTeams,
+        fallRounds: rebuildRounds(data.season.fallRounds || []),
+        springRounds: rebuildRounds(data.season.springRounds || [])
+      };
+      renderResults(lastSeason);
+      document.getElementById('resultsSection').style.display = 'block';
+      document.getElementById('playoffSection').style.display = 'block';
+
+      standingsOrder = (Array.isArray(data.standingsOrder) && data.standingsOrder.length===snapTeams.length)
+        ? data.standingsOrder.slice()
+        : snapTeams.map(t=>t.id);
+      drawStandings(snapTeams);
+
+      if(data.bracket){
+        currentBracketState = deserializeBracket(data.bracket, byId);
+        renderBracket(currentBracketState);
+      }
+    }
+  }
+
+  document.getElementById('resetSavedBtn').addEventListener('click', () => {
+    if(!confirm('Obrisati sve sačuvano u ovom browseru i početi ispočetka?')) return;
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    location.reload();
+  });
+
+  // ---------------- date helpers for export ----------------
+  function pad2(n){ return n<10 ? '0'+n : ''+n; }
+  function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  function computeMatchDates(){
+    const startVal = document.getElementById('startDate').value;
+    if(!startVal) return null;
+    const [y,m,d] = startVal.split('-').map(Number);
+    const base = new Date(y, m-1, d);
+    const gap = parseInt(document.getElementById('roundGap').value,10) || 7;
+    const timeVal = document.getElementById('matchTime').value;
+    const timeStr = (timeVal && timeVal.length>=5) ? (timeVal.slice(0,5)+':00') : '21:00:00';
+    return { base, gap, timeStr };
+  }
+  function dateForRoundIndex(dateInfo, idx){
+    if(!dateInfo) return '';
+    const d = new Date(dateInfo.base);
+    d.setDate(d.getDate() + idx*dateInfo.gap);
+    return d.getFullYear()+'/'+pad2(d.getMonth()+1)+'/'+pad2(d.getDate());
+  }
+  if(!document.getElementById('startDate').value) document.getElementById('startDate').value = todayISO();
+  ['startDate','matchTime','roundGap'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', saveState);
+  });
+
+  // ---------------- Excel export ----------------
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    if(!lastSeason) return;
+    if(!window.XLSX){ alert('Excel export biblioteka nije uspela da se učita (proveri internet konekciju).'); return; }
+    const { fallRounds, springRounds, teams: snapTeams } = lastSeason;
+    const dateInfo = computeMatchDates();
+
+    const roundsToAOA = (rounds, indexOffset) => {
+      const aoa = [['Kolo','Datum','Vreme','Domaćin','Gost']];
+      rounds.forEach((round, idx) => {
+        const globalIdx = indexOffset + idx;
+        const dateStr = dateForRoundIndex(dateInfo, globalIdx);
+        const timeStr = dateInfo ? dateInfo.timeStr : '';
+        round.forEach(p => aoa.push([globalIdx+1, dateStr, timeStr, p.home.name, p.away.name]));
+      });
+      return aoa;
+    };
+
+    const perTeam = {};
+    snapTeams.forEach(t => perTeam[t.id] = { home:0, away:0, vsA:0, vsB:0 });
+    [...fallRounds, ...springRounds].forEach(round => round.forEach(p => {
+      perTeam[p.home.id].home++; perTeam[p.away.id].away++;
+      perTeam[p.a.id][p.b.pot==='A' ? 'vsA':'vsB']++;
+      perTeam[p.b.id][p.a.pot==='A' ? 'vsA':'vsB']++;
+    }));
+    const teamsAOA = [['Tim','Pot','Mečeva','Kod kuće','Gost','Sa jačim','Sa slabijim']];
+    snapTeams.forEach(t => {
+      const s = perTeam[t.id];
+      teamsAOA.push([t.name, t.pot==='A'?'Jak':'Slab', s.home+s.away, s.home, s.away, s.vsA, s.vsB]);
+    });
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(roundsToAOA(fallRounds, 0)), 'Jesenji deo');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(roundsToAOA(springRounds, fallRounds.length)), 'Prolećni deo');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(teamsAOA), 'Timovi');
+    XLSX.writeFile(wb, 'sezona.xlsx');
+  });
+
+  // ---------------- CSV export ----------------
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    if(!lastSeason) return;
+    const dateInfo = computeMatchDates();
+    if(!dateInfo){ alert('Izaberi datum 1. kola pre izvoza u CSV.'); return; }
+    const allRounds = [...lastSeason.fallRounds, ...lastSeason.springRounds];
+    const escapeCsv = (v) => { v = String(v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+    const lines = ['Date,Time,Venue,Home,Away'];
+    allRounds.forEach((round, idx) => {
+      const dateStr = dateForRoundIndex(dateInfo, idx);
+      round.forEach(p => {
+        lines.push([dateStr, dateInfo.timeStr, '', escapeCsv(p.home.name), escapeCsv(p.away.name)].join(','));
+      });
+    });
+    const csv = lines.join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'mecevi.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------------- "Liga tabela" Excel export (full template w/ formulas) ----------------
+  function buildLigaWorkbook(season){
+    const { fallRounds, springRounds, teams: snapTeams } = season;
+    const N = snapTeams.length;
+    const M = N / 2;
+    const R = fallRounds.length; // fall and spring have equal round counts
+
+    const rosterStart = 4, rosterEnd = 3 + N;
+    const helperStart = 3, helperEnd = 2 + N;
+    const tabelaHeaderRow = 4, tabelaRankStart = 5, tabelaRankEnd = 4 + N;
+
+    const fixtureStart = tabelaRankEnd + 3;
+    const afterFall = fixtureStart + 1 + R * (1 + M);
+    const blankRow = afterFall;
+    const springHeaderRow = afterFall + 1;
+    const afterSpring = springHeaderRow + 1 + R * (1 + M);
+    const fixtureEnd = afterSpring - 1;
+    const rangeBuffer = 20;
+    const rangeEnd = fixtureEnd + rangeBuffer;
+
+    const ws = {};
+    const put = (addr, cell) => { ws[addr] = cell; };
+    const str = (v, extra) => Object.assign({ t:'s', v }, extra||{});
+    const num = (v, extra) => Object.assign({ t:'n', v }, extra||{});
+    const formula = (f, extra) => Object.assign({ t:'n', f }, extra||{});
+    const blankStyled = (s) => ({ t:'z', s });
+
+    const boldStyle = { font: { bold:true } };
+    const titleStyle = { font: { bold:true, sz:14 } };
+    const yellowFill = { fill: { patternType:'solid', fgColor:{ rgb:'FFFF99' } } };
+    const koloStyle = { font: { bold:true } };
+
+    // title + headers
+    put('A1', str('GRUPA A', { s: titleStyle }));
+    put('A3', str('Tim', { s: boldStyle }));
+    put('B3', str('Bonus/kazneni poeni', { s: boldStyle }));
+    put('G3', str('TABELA', { s: boldStyle }));
+    const helperHeaders = ['GP','W','D','L','GF','GA','GD','PTS','rank'];
+    ['T','U','V','W','X','Y','Z','AA','AB'].forEach((c,i)=> put(c+'2', str(helperHeaders[i], { s: boldStyle })));
+    put('G4', str('Tim', { s: boldStyle }));
+    ['GP','W','D','L','GF','GA','GD','PTS'].forEach((h,i)=> put(['H','I','J','K','L','M','N','O'][i]+'4', str(h, { s: boldStyle })));
+
+    // roster + bonus points
+    const teamRowById = {};
+    snapTeams.forEach((t,i)=>{
+      const r = rosterStart+i;
+      teamRowById[t.id] = r;
+      put('A'+r, str(t.name));
+      put('B'+r, num(0));
+    });
+
+    // helper table (S:AB) — one row per team, drives the standings math
+    for(let i=0;i<N;i++){
+      const hr = helperStart+i, rr = rosterStart+i;
+      put('S'+hr, formula(`A${rr}`));
+      put('T'+hr, formula(`SUMPRODUCT(($A$${fixtureStart}:$A$${rangeEnd}=S${hr})*(ISNUMBER($C$${fixtureStart}:$C$${rangeEnd})))+SUMPRODUCT(($B$${fixtureStart}:$B$${rangeEnd}=S${hr})*(ISNUMBER($E$${fixtureStart}:$E$${rangeEnd})))`));
+      put('U'+hr, formula(`SUMPRODUCT(($A$${fixtureStart}:$A$${rangeEnd}=S${hr})*($C$${fixtureStart}:$C$${rangeEnd}>$E$${fixtureStart}:$E$${rangeEnd}))+SUMPRODUCT(($B$${fixtureStart}:$B$${rangeEnd}=S${hr})*($E$${fixtureStart}:$E$${rangeEnd}>$C$${fixtureStart}:$C$${rangeEnd}))`));
+      put('V'+hr, formula(`SUMPRODUCT(($A$${fixtureStart}:$A$${rangeEnd}=S${hr})*($C$${fixtureStart}:$C$${rangeEnd}=$E$${fixtureStart}:$E$${rangeEnd})*ISNUMBER($E$${fixtureStart}:$E$${rangeEnd}))+SUMPRODUCT(($B$${fixtureStart}:$B$${rangeEnd}=S${hr})*($E$${fixtureStart}:$E$${rangeEnd}=$C$${fixtureStart}:$C$${rangeEnd})*ISNUMBER($C$${fixtureStart}:$C$${rangeEnd}))`));
+      put('W'+hr, formula(`SUMPRODUCT(($A$${fixtureStart}:$A$${rangeEnd}=S${hr})*($C$${fixtureStart}:$C$${rangeEnd}<$E$${fixtureStart}:$E$${rangeEnd}))+SUMPRODUCT(($B$${fixtureStart}:$B$${rangeEnd}=S${hr})*($E$${fixtureStart}:$E$${rangeEnd}<$C$${fixtureStart}:$C$${rangeEnd}))`));
+      put('X'+hr, formula(`SUMIF($A$${fixtureStart}:$A$${rangeEnd},S${hr},$C$${fixtureStart}:$C$${rangeEnd})+SUMIF($B$${fixtureStart}:$B$${rangeEnd},S${hr},$E$${fixtureStart}:$E$${rangeEnd})`));
+      put('Y'+hr, formula(`SUMIF($A$${fixtureStart}:$A$${rangeEnd},S${hr},$E$${fixtureStart}:$E$${rangeEnd})+SUMIF($B$${fixtureStart}:$B$${rangeEnd},S${hr},$C$${fixtureStart}:$C$${rangeEnd})`));
+      put('Z'+hr, formula(`X${hr}-Y${hr}`));
+      put('AA'+hr, formula(`U${hr}*3+V${hr}*1+W${hr}*0+VLOOKUP(S${hr},$A$${rosterStart}:$B$${rosterEnd},2,0)`));
+      put('AB'+hr, formula(`X${hr}+Z${hr}*10000+AA${hr}*1000000000`));
+    }
+
+    // visible standings table (G:O), ranked by the AB sort key
+    for(let i=0;i<N;i++){
+      const vr = tabelaRankStart+i;
+      // This ranking formula needs true array evaluation (LARGE over a computed
+      // array), so it's written as a CSE array formula via the "F" field —
+      // a plain formula would truncate the array and return wrong ranks.
+      put('G'+vr, formula(`INDEX($S$${helperStart}:$S$${helperEnd},MATCH(LARGE($AB$${helperStart}:$AB$${helperEnd}-ROW($AB$${helperStart}:$AB$${helperEnd})/COUNT($AB$${helperStart}:$AB$${helperEnd}),ROW(H${vr})-ROW(H$${tabelaRankStart})+1),$AB$${helperStart}:$AB$${helperEnd}-ROW($AB$${helperStart}:$AB$${helperEnd})/COUNT($AB$${helperStart}:$AB$${helperEnd}),0))`, { F: `G${vr}:G${vr}` }));
+      ['H','I','J','K','L','M','N','O'].forEach((col,ci)=>{
+        put(col+vr, formula(`VLOOKUP($G${vr},$S$${helperStart}:$AA$${helperEnd},${ci+2},0)`));
+      });
+    }
+
+    // fixture list: JESENJI DEO + PROLEĆNI DEO, "Kolo N" blocks with home/away formulas
+    let row = fixtureStart;
+    put('A'+row, str('JESENJI DEO', { s: koloStyle })); row++;
+    fallRounds.forEach((matches, ri)=>{
+      put('A'+row, str('Kolo '+(ri+1), { s: koloStyle })); row++;
+      matches.forEach(p=>{
+        put('A'+row, formula(`A${teamRowById[p.home.id]}`));
+        put('B'+row, formula(`A${teamRowById[p.away.id]}`));
+        put('D'+row, str(':'));
+        put('C'+row, blankStyled(yellowFill));
+        put('E'+row, blankStyled(yellowFill));
+        row++;
+      });
+    });
+    row = blankRow + 1;
+    put('A'+row, str('PROLEĆNI DEO', { s: koloStyle })); row++;
+    springRounds.forEach((matches, ri)=>{
+      put('A'+row, str('Kolo '+(R+ri+1), { s: koloStyle })); row++;
+      matches.forEach(p=>{
+        put('A'+row, formula(`A${teamRowById[p.home.id]}`));
+        put('B'+row, formula(`A${teamRowById[p.away.id]}`));
+        put('D'+row, str(':'));
+        put('C'+row, blankStyled(yellowFill));
+        put('E'+row, blankStyled(yellowFill));
+        row++;
+      });
+    });
+
+    ws['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rangeEnd-1, c:27} }); // through col AB
+    ws['!cols'] = [
+      { wch:22 }, { wch:14 }, { wch:6 }, { wch:3 }, { wch:6 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Grupa A');
+    return wb;
+  }
+
+  document.getElementById('exportLigaBtn').addEventListener('click', () => {
+    if(!lastSeason){ return; }
+    if(!window.XLSX){ alert('Excel export biblioteka nije uspela da se učita (proveri internet konekciju).'); return; }
+    const wb = buildLigaWorkbook(lastSeason);
+    XLSX.writeFile(wb, 'liga-tabela.xlsx');
+  });
+
+  loadState();
+
+})();
+</script>
+</body>
+</html>
